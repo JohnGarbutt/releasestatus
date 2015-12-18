@@ -33,7 +33,7 @@ class GerritReviews():
     def _get_from_gerrit(self, *query):
         chg = {}
         age = '2mon'
-        host = "review.openstack.org"
+        host = "johngarbutt@review.openstack.org"
         port = "29418"
 
         base_cmd = ['/usr/bin/ssh', '-p', port, host, 'gerrit', 'query',
