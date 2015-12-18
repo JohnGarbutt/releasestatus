@@ -37,19 +37,21 @@ class GerritReviews():
         port = "29418"
 
         base_cmd = ['/usr/bin/ssh', '-p', port, host, 'gerrit', 'query',
-                    '--format=JSON', 'branch:master', 'AND', 'NOT',
+                    '--format=JSON']
+        opts_cmd = ['branch:master', 'AND', 'NOT',
                     'age:%s' % age] + list(query)
 
         for product in self.products:
             chg[product] = []
-            prod_cmd = base_cmd + ['AND', 'project:openstack/%s' % product]
-            sortkey = None
+            product_cmd = ['AND', 'project:openstack/%s' % product]
+            start_at = 0
 
             while True:
-                if sortkey:
-                    cmd = prod_cmd + ['AND', 'resume_sortkey:%s' % sortkey]
+                if start_at > 0:
+                    start_cmd = ["--start", str(start_at)]
+                    cmd = base_cmd + start_cmd + opts_cmd + product_cmd
                 else:
-                    cmd = prod_cmd
+                    cmd = base_cmd + opts_cmd + product_cmd
 
                 proc = subprocess.Popen(cmd, bufsize=1, stdin=None,
                                         stdout=subprocess.PIPE, stderr=None)
@@ -66,7 +68,7 @@ class GerritReviews():
                     if data in chg[product]:
                         end_of_changes = True
                         break
-                    sortkey = data['sortKey']
+                    start_at += 1
                     chg[product].append(data)
                 if end_of_changes:
                     break
